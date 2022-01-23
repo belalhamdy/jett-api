@@ -40,9 +40,8 @@ class ApplicationsController < ApplicationController
   end
 
   def self.update_chats_count
-    @all_applications = Application.all
     @non_empty_applications = Chat.group(:application_id).count
-    @all_applications.each do |application|
+    Application.all.each do |application|
       application.chats_count = @non_empty_applications[application.id] || 0
       application.save
     end
