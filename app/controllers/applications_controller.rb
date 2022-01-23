@@ -50,6 +50,7 @@ class ApplicationsController < ApplicationController
   private
 
   def set_application
+    #TODO: if the token does not exist shout
     @application = Application.where(token: params[:token])
   end
 
