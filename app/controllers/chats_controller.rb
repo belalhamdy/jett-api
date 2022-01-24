@@ -7,6 +7,7 @@ class ChatsController < ApplicationController
     @returned_chats = Chat.all.as_json(except: %i[id application_id])
     render json: { body: @returned_chats, message: format('Retrieved %i chats.', @returned_chats.length) }, status: :ok
   end
+
   # account = Account.first
   # account.with_lock do
   #   # This block is called within a transaction,
@@ -20,10 +21,26 @@ class ChatsController < ApplicationController
   end
 
   def create
-    @last_chat = @chats.last
-    @chat_number = @last_chat ? @last_chat.number + 1 : 1
-    CreateChatWorker.perform_async(@application.id, @chat_number)
-    render json: { data: { number: @chat_number }, error: '' }, status: :created
+    @chat_number = nil
+    ActiveRecord::Base.transaction do
+      @application.lock!
+      @last_chat = @chats.last
+      @chat_number = @last_chat ? @last_chat.number + 1 : 1
+      @application[:chats_count] += 1
+      @application.save
+    end
+    unless @chat_number.nil?
+      row = Chat.create(number: @chat_number, application_id: application_id)
+      if row.save
+        render json: { data: { chat_number: @chat_number },
+                       message: format('Chat %i is created successfully.', @chat_number) }, status: :created
+      else
+        render json: { data: { chat_number: nil },
+                       message: 'Cannot create chat.' }, status: :bad_request
+      end
+    end
+    render json: { data: { chat_number: nil }, message: 'Application with given token is not found.' }, status: :bad_request
+
   end
 
   def self.update_messages_count
