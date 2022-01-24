@@ -18,6 +18,7 @@ class ApplicationsController < ApplicationController
   def create
     @application = Application.new(application_params)
     @application.token = SecureRandom.hex(16)
+    @application.token = SecureRandom.hex(16) while Application.exists?(token: @application.token) # TODO: make it breaks after certain loops
     if @application.save
       render json: { body: { token: @application.token },
                      message: format('Created application with id %s.', @application.id) },
