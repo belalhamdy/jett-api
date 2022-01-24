@@ -2,7 +2,7 @@ class ChatsController < ApplicationController
   before_action :set_application, only: %i[show update create]
   before_action :set_chat, only: %i[show update]
   before_action :set_chats, only: %i[create]
-
+  #TODO remove @ from variables and try
   def index
     @returned_chats = Chat.all.as_json(except: %i[id application_id])
     render json: { body: @returned_chats, message: format('Retrieved %i chats.', @returned_chats.length) }, status: :ok
@@ -15,6 +15,10 @@ class ChatsController < ApplicationController
 
   def create
     @last_chat = @chats.last
+    ActiveRecord::Base.transaction do
+
+      @last_chat.lock!
+    end
     @chat_number = @last_chat ? @last_chat.number + 1 : 1
     #TODO: save chat
     #CreateChatWorker.perform_async(@application.id, @chat_number)
