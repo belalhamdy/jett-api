@@ -25,12 +25,12 @@ class ChatsController < ApplicationController
     ActiveRecord::Base.transaction do
       @application.lock!
       @last_chat = @chats.last
-      @chat_number = @last_chat ? @last_chat.number + 1 : 1
+      @chat_number = @last_chat.nil? ? 1 : @last_chat.number + 1
       @application[:chats_count] += 1
       @application.save
     end
     unless @chat_number.nil?
-      row = Chat.create(number: @chat_number, application_id: application_id)
+      row = Chat.create(number: @chat_number, application_id: @application.id)
       if row.save
         render json: { data: { chat_number: @chat_number },
                        message: format('Chat %i is created successfully.', @chat_number) }, status: :created
@@ -39,8 +39,6 @@ class ChatsController < ApplicationController
                        message: 'Cannot create chat.' }, status: :bad_request
       end
     end
-    render json: { data: { chat_number: nil }, message: 'Application with given token is not found.' }, status: :bad_request
-
   end
 
   def self.update_messages_count
