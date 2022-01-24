@@ -15,13 +15,9 @@ class ChatsController < ApplicationController
 
   def create
     @last_chat = @chats.last
-    ActiveRecord::Base.transaction do
-
-      @last_chat.lock!
-    end
     @chat_number = @last_chat ? @last_chat.number + 1 : 1
     #TODO: save chat
-    #CreateChatWorker.perform_async(@application.id, @chat_number)
+    CreateChatWorker.perform_async(@application.id, @chat_number)
     render json: { data: { number: @chat_number }, error: '' }, status: :created
   end
 
