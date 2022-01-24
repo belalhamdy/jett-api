@@ -1,11 +1,11 @@
 class ChatsController < ApplicationController
   before_action :set_application, only: %i[show update create]
   before_action :set_chat, only: %i[show update]
-  before_action :set_chats, only: %i[index create]
+  before_action :set_chats, only: %i[create]
 
   def index
-    @returned_chats = @chats.as_json(except: %i[id application_id])
-    render json: { body: @returned_chats, message: format('Retrieved %i chats.', @chats.length) }, status: :ok
+    @returned_chats = Chat.all.as_json(except: %i[id application_id])
+    render json: { body: @returned_chats, message: format('Retrieved %i chats.', @returned_chats.length) }, status: :ok
   end
 
   def show
