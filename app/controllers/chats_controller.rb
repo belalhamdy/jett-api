@@ -16,7 +16,6 @@ class ChatsController < ApplicationController
   def create
     @last_chat = @chats.last
     @chat_number = @last_chat ? @last_chat.number + 1 : 1
-    #TODO: save chat
     CreateChatWorker.perform_async(@application.id, @chat_number)
     render json: { data: { number: @chat_number }, error: '' }, status: :created
   end
@@ -32,7 +31,7 @@ class ChatsController < ApplicationController
   private
 
   def set_application
-    @application = Application.where(token: params[:application_token])
+    @application = Application.where(token: params[:application_token]).first
     render json: { body: nil, message: 'Token does not belong to any application.' }, status: :bad_request if @application.nil?
   end
 
