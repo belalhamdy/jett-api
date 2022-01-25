@@ -2,31 +2,31 @@ class ChatsController < ApplicationController
   before_action :set_application, only: %i[show update create]
   before_action :set_chat, only: %i[show update]
   before_action :set_chats, only: %i[create]
-  #TODO remove @ from variables and try
+
   def index
-    @returned_chats = Chat.all.as_json(except: %i[id application_id])
-    render json: { body: @returned_chats, message: format('Retrieved %i chats.', @returned_chats.length) }, status: :ok
+    returned_chats = Chat.all.as_json(except: %i[id application_id])
+    render json: { body: returned_chats, message: format('Retrieved %i chats.', returned_chats.length) }, status: :ok
   end
 
   def show
-    @returned_chat = @chat.as_json(except: %i[id application_id])
-    render json: { body: @returned_chat, message: format('Retrieved chat %i.', @chat.number) }, status: :ok
+    returned_chat = chat.as_json(except: %i[id application_id])
+    render json: { body: returned_chat, message: format('Retrieved chat %i.', @chat.number) }, status: :ok
   end
 
   def create
-    @chat_number = nil
+    chat = Message.new
+    chat.application_id = @application.id
     ActiveRecord::Base.transaction do
       @application.lock!
-      @last_chat = @chats.last
-      @chat_number = @last_chat.nil? ? 1 : @last_chat.number + 1
+      last_chat = @chats.last
+      chat.number = last_chat.nil? ? 1 : last_chat.number + 1
       @application[:chats_count] += 1
       @application.save
     end
-    unless @chat_number.nil?
-      row = Chat.create(number: @chat_number, application_id: @application.id)
-      if row.save
-        render json: { body: { chat_number: @chat_number },
-                       message: format('Chat %i is created successfully.', @chat_number) }, status: :ok
+    unless chat.number.nil?
+      if chat.save
+        render json: { body: { chat_number: chat.number },
+                       message: format('Chat %i is created successfully.', chat.number) }, status: :ok
       else
         render json: { body: { chat_number: nil },
                        message: 'Cannot create chat.' }, status: :bad_request
