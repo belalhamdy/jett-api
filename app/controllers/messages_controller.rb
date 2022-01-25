@@ -32,20 +32,6 @@ class MessagesController < ApplicationController
     end
   end
 
-  def update
-
-    if !message_params[:body].blank?
-      UpdateMessageWorker.perform_async(message_params[:body], @message.id) if @application && @chat && @message
-      @message.body = message_params[:body]
-      render json: { data: @message.as_json(except: %i[id application_id chat_id]), error: '' }, status: :ok
-    else
-      render json: { data: nil, error: 'Body is required' }, status: :bad_request
-    end
-  rescue Exception => ex
-    render json: { data: nil, error: ex.message }, status: :internal_server_error
-
-  end
-
   def search
     # if @@first_search
     #   @@first_search = false
