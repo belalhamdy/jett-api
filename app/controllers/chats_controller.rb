@@ -32,10 +32,10 @@ class ChatsController < ApplicationController
     unless @chat_number.nil?
       row = Chat.create(number: @chat_number, application_id: @application.id)
       if row.save
-        render json: { data: { chat_number: @chat_number },
-                       message: format('Chat %i is created successfully.', @chat_number) }, status: :created
+        render json: { body: { chat_number: @chat_number },
+                       message: format('Chat %i is created successfully.', @chat_number) }, status: :ok
       else
-        render json: { data: { chat_number: nil },
+        render json: { body: { chat_number: nil },
                        message: 'Cannot create chat.' }, status: :bad_request
       end
     end
