@@ -1,5 +1,5 @@
 class MessagesController < ApplicationController
-  before_action :set_chat, only: %i[index search create]
+  before_action :set_messages, only: %i[index search create]
   before_action :set_message, only: %i[show update]
 
   def index
@@ -12,85 +12,83 @@ class MessagesController < ApplicationController
   end
 
   def create
-    message = Message.new(message_params)
-    message.chat_id = chat.id
+    @message = Message.new(message_params)
+    @message.chat_id = @chat.id
     ActiveRecord::Base.transaction do
       @chat.lock!
-      last_message = @chat.last
-      message.number = last_message.nil? ? 1 : last_message.number + 1
+      last_message = @messages.last
+      @message.number = last_message.nil? ? 1 : last_message.number + 1
       @chat[:messages_count] += 1
       @chat.save
     end
-    unless message.number.nil?
-      row = Message.create(message)
-      if row.save
-        render json: { body: { message_number: message.number },
-                       message: format('Message %i is created successfully.', message.number) }, status: :ok
+    unless @message.number.nil?
+      if @message.save
+        render json: { body: { message_number: @message.number },
+                       message: format('Message %i is created successfully.', @message.number) }, status: :ok
       else
         render json: { body: { message_number: nil },
                        message: 'Cannot create message.' }, status: :bad_request
       end
     end
+  end
 
-    def update
+  def update
 
-      if !message_params[:body].blank?
-        UpdateMessageWorker.perform_async(message_params[:body], @message.id) if @application && @chat && @message
-        @message.body = message_params[:body]
-        render json: { data: @message.as_json(except: %i[id application_id chat_id]), error: '' }, status: :ok
-      else
-        render json: { data: nil, error: 'Body is required' }, status: :bad_request
-      end
-    rescue Exception => ex
-      render json: { data: nil, error: ex.message }, status: :internal_server_error
-
+    if !message_params[:body].blank?
+      UpdateMessageWorker.perform_async(message_params[:body], @message.id) if @application && @chat && @message
+      @message.body = message_params[:body]
+      render json: { data: @message.as_json(except: %i[id application_id chat_id]), error: '' }, status: :ok
+    else
+      render json: { data: nil, error: 'Body is required' }, status: :bad_request
     end
+  rescue Exception => ex
+    render json: { data: nil, error: ex.message }, status: :internal_server_error
 
-    def search
-      # if @@first_search
-      #   @@first_search = false
-      #   Message.reindex
-      # end
-      # @messages = Message.search(params[:body], where: { chat_id: @chat.id, application_id: @application.id })
-      # render json: { data: @messages.as_json(:except => [:id, :application_id, :chat_id]), error: '' }, status: :ok
-    end
+  end
 
-    private
+  def search
+    # if @@first_search
+    #   @@first_search = false
+    #   Message.reindex
+    # end
+    # @messages = Message.search(params[:body], where: { chat_id: @chat.id, application_id: @application.id })
+    # render json: { data: @messages.as_json(:except => [:id, :application_id, :chat_id]), error: '' }, status: :ok
+  end
 
-    def set_application
-      @application = Application.where(token: params[:application_token]).first
-      return if @application
+  private
 
-      render json: { body: nil, message: 'Token does not belong to any application.' }, status: :bad_request
-    end
+  def set_application
+    @application = Application.where(token: params[:application_token]).first
+    return if @application
 
-    def set_chat
-      set_application
-      return if @application.nil?
+    render json: { body: nil, message: 'Token does not belong to any application.' }, status: :bad_request
+  end
 
-      @chat = @application.chats.where(number: params[:chat_number]).first
-      return if @chat
+  def set_chat
+    set_application
+    return if @application.nil?
 
-      render json: { body: nil, message: format('Application %s does not contain the given chat number %i.',
-                                                @application.token, params[:chat_number]) }, status: :bad_request
-    end
+    @chat = @application.chats.where(number: params[:chat_number]).first
+    return if @chat
 
-    def set_message
-      set_chat
-      return if @chat.nil?
+    render json: { body: nil, message: format('Application %s does not contain the given chat number %i.',
+                                              @application.token, params[:chat_number]) }, status: :bad_request
+  end
 
-      @message = @chat.messages.where(number: params[:number]).first if @chat
-    end
+  def set_message
+    set_chat
+    return if @chat.nil?
 
-    def set_messages
-      set_chat
-      return if @chat.nil?
+    @message = @chat.messages.where(number: params[:number]).first if @chat
+  end
 
-      @messages = @chat.messages.where(number: params[:number]) if @chat
-    end
+  def set_messages
+    set_chat
+    return if @chat.nil?
+    @messages = @chat.messages if @chat
+  end
 
-    def message_params
-      params.require(:message).permit(:body)
-    end
+  def message_params
+    params.require(:message).permit(:body)
   end
 end
