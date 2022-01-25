@@ -3,7 +3,7 @@ Rails.application.routes.draw do
   resources :applications do
   end
   resources :chats do
-    resources :messages do
-    end
+  end
+  resources :messages do
   end
 end

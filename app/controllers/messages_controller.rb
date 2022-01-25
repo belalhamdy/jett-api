@@ -3,7 +3,7 @@ class MessagesController < ApplicationController
   before_action :set_message, only: %i[show update]
 
   def index
-    messages = Message.where(chat_id: @chat.id, application_id: @application.id)
+    messages = Message.where(chat_id: @chat.id)
     json_messages = messages.as_json(except: %i[id application_id chat_id])
     render json: { body: json_messages, message: format('fetched %i messages.', messages.length) }, status: :ok
   end
@@ -62,15 +62,19 @@ class MessagesController < ApplicationController
   def set_application
     @application = Application.where(token: params[:application_token]).first
     return if @application
+
     render json: { body: nil, message: 'Token does not belong to any application.' }, status: :bad_request
   end
 
   def set_chat
     set_application
+    return if @application.nil?
+
     @chat = @application.chats.where(number: params[:chat_number]).first
     return if @chat
-    render json: { body: nil, message: format('Application %s does not contain the given chat number.',
-                                              @application.token) }, status: :bad_request
+
+    render json: { body: nil, message: format('Application %s does not contain the given chat number %i.',
+                                              @application.token, params[:chat_number]) }, status: :bad_request
   end
 
   def set_message
