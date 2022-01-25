@@ -14,7 +14,7 @@ class ChatsController < ApplicationController
   end
 
   def create
-    chat = Message.new
+    chat = Chat.new
     chat.application_id = @application.id
     ActiveRecord::Base.transaction do
       @application.lock!
