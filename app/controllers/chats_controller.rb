@@ -57,7 +57,7 @@ class ChatsController < ApplicationController
   end
 
   def set_chat
-    @chat = Chat.where(application_id: @application.id, number: params[:number])
+    @chat = Chat.where(application_id: @application.id, number: params[:chat_number])
   end
 
   def set_chats

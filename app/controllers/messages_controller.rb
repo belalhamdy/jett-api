@@ -79,7 +79,7 @@ class MessagesController < ApplicationController
     set_chat
     return if @chat.nil?
 
-    @message = @chat.messages.where(number: params[:number]).first if @chat
+    @message = @chat.messages.where(number: params[:message_number]).first if @chat
   end
 
   def set_messages
