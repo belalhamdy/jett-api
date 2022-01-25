@@ -34,14 +34,6 @@ class ChatsController < ApplicationController
     end
   end
 
-  def self.update_messages_count
-    @chats_counts = Message.group(:chat_id).count
-    Chat.all.each do |chat|
-      chat.messages_count = @chats_counts[chat.id] || 0
-      chat.save
-    end
-  end
-
   private
 
   def set_application
