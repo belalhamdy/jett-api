@@ -8,6 +8,7 @@ class ChatsController < ApplicationController
     render json: { body: @returned_chats, message: format('Retrieved %i chats.', @returned_chats.length) }, status: :ok
   end
 
+
   def show
     @returned_chat = @chat.as_json(except: %i[id application_id])
     render json: { body: @returned_chat, message: format('Retrieved chat %i.', @chat.number) }, status: :ok
