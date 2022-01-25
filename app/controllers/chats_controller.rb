@@ -4,6 +4,7 @@ class ChatsController < ApplicationController
   before_action :set_chats, only: %i[create]
   #TODO remove @ from variables and try
   def index
+
     @returned_chats = Chat.all.as_json(except: %i[id application_id])
     render json: { body: @returned_chats, message: format('Retrieved %i chats.', @returned_chats.length) }, status: :ok
   end
