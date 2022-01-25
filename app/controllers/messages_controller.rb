@@ -33,12 +33,9 @@ class MessagesController < ApplicationController
   end
 
   def search
-    # if @@first_search
-    #   @@first_search = false
-    #   Message.reindex
-    # end
-    # @messages = Message.search(params[:body], where: { chat_id: @chat.id, application_id: @application.id })
-    # render json: { data: @messages.as_json(:except => [:id, :application_id, :chat_id]), error: '' }, status: :ok
+    found_messages = @messages.where("body like '%#{params[:body]}%'")
+    render json: { body: { found_messages: found_messages.as_json(except: %i[id application_id chat_id]) },
+                   message: format('Found %i messages.', found_messages.length) }, status: :ok
   end
 
   private
