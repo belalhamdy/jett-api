@@ -1,24 +1,7 @@
-# README
+# Jett API
+This api is for Instabug backend challange.
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+# Some Notes:
 
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+* The code is very basic due to I am working on a virtual machine so the I cant achieve all the task requirements
+* I faced an issues with elasticsearch and docker configurations because of virtual machine.
